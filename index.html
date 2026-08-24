@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Relatório de Músicos e Organistas CCB/GII</title>
+
+    <!-- PWA & Icon Links -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1b4332">
+    <link rel="apple-touch-icon" href="img/icon-192.png">
+
+    <!-- External Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Montserrat:wght@400;500;600;700&family=Playfair+Display:ital,wght@1,500&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-color: #1b4332;
+            --primary-light: #2d6a4f;
+            --accent-color: #d4af37;
+            --bg-color: #f3f4f6;
+            --card-bg: #ffffff;
+            --text-color: #1f2937;
+            --border-color: #d1d5db;
+            --header-bg: #1b4332;
+            --header-text: #ffffff;
+            --row-alt: #f9fafb;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Montserrat', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .controls {
+            width: 100%;
+            max-width: 480px;
+            background: #ffffff;
+            padding: 12px 16px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 8px;
+            width: 100%;
+        }
+
+        .btn {
+            flex: 1;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+            text-align: center;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn-secondary { background-color: #4b5563; }
+        .btn-save { background-color: #2563eb; }
+
+        .document-wrapper {
+            width: 100%;
+            max-width: 480px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .document-container {
+            width: 100%;
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            border: 1px solid #e5e7eb;
+        }
+
+        .header-section {
+            text-align: center;
+            margin-bottom: 16px;
+            border-bottom: 2px solid var(--accent-color);
+            padding-bottom: 10px;
+        }
+
+        .sub-header {
+            font-family: 'Playfair Display', serif;
+            font-style: italic;
+            font-size: 0.95rem;
+            color: #4b5563;
+            margin-bottom: 4px;
+        }
+
+        .main-title {
+            font-family: 'Cinzel', serif;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            line-height: 1.3;
+        }
+
+        .info-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            background: #f9fafb;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+            margin-bottom: 15px;
+        }
+
+        .info-row {
+            display: flex;
+            gap: 8px;
+            width: 100%;
+        }
+
+        .input-group {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .input-group label {
+            font-weight: 600;
+            font-size: 0.8rem;
+            color: var(--primary-color);
+            white-space: nowrap;
+        }
+
+        .input-group input {
+            width: 100%;
+            min-width: 0;
+            padding: 5px 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            font-size: 0.85rem;
+            outline: none;
+            background: #ffffff;
+        }
+
+        .table-responsive {
+            width: 100%;
+            margin-bottom: 15px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            table-layout: auto;
+        }
+
+        th, td {
+            padding: 6px 6px;
+            text-align: left;
+            border: 1px solid var(--border-color);
+            vertical-align: middle;
+        }
+
+        th {
+            background-color: var(--header-bg);
+            color: var(--header-text);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.3px;
+        }
+
+        th.text-center, td.text-center { text-align: center; }
+        tbody tr:nth-child(even) { background-color: var(--row-alt); }
+
+        .inst-input {
+            width: 100%;
+            border: none;
+            background: transparent;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #1f2937;
+            padding: 2px;
+        }
+
+        .num-input {
+            width: 100%;
+            max-width: 50px;
+            padding: 4px 2px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            background: #ffffff;
+        }
+
+        .num-input:focus {
+            border-color: var(--primary-color);
+            background-color: #f0fdf4;
+        }
+
+        .col-qtd, .col-pres {
+            width: 90px;
+            white-space: nowrap;
+        }
+
+        .row-total {
+            background-color: #e2e8f0 !important;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .row-grand-total {
+            background-color: var(--primary-color) !important;
+            color: white !important;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        .row-grand-total td { border-color: var(--primary-color); }
+
+        .delete-btn {
+            color: #ef4444;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 0.9rem;
+            padding: 4px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .footer-section {
+            margin-top: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .signatures {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            background: #f9fafb;
+            padding: 10px 12px;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .signature-field {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            width: 100%;
+        }
+
+        .signature-field label {
+            font-weight: 600;
+            font-size: 0.8rem;
+            color: var(--primary-color);
+            white-space: nowrap;
+        }
+
+        .signature-field input {
+            width: 100%;
+            padding: 5px 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            font-size: 0.85rem;
+            background: #ffffff;
+        }
+
+        .motivational-quote {
+            text-align: center;
+            font-family: 'Playfair Display', serif;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            background: #f0fdf4;
+            padding: 10px;
+            border-radius: 8px;
+            border-left: 3px solid var(--primary-color);
+            line-height: 1.4;
+        }
+
+        .exporting-mode {
+            width: 440px !important;
+            max-width: 440px !important;
+            border-radius: 0 !important;
+            box-shadow: none !important;
+            padding: 18px !important;
+        }
+
+        .exporting-mode .col-qtd, .exporting-mode .col-pres { width: 105px !important; }
+        .exporting-mode th { font-size: 0.7rem !important; padding: 6px 2px !important; }
+    </style>
+</head>
+<body>
+
+    <!-- Controls -->
+    <div class="controls">
+        <div class="btn-group">
+            <button class="btn" onclick="addInstrument()"><i class="fa-solid fa-plus"></i> Instrumento</button>
+            <button class="btn btn-save" onclick="saveData()"><i class="fa-solid fa-floppy-disk"></i> Salvar</button>
+            <button class="btn btn-secondary" onclick="resetForm()"><i class="fa-solid fa-rotate-left"></i> Limpar</button>
+        </div>
+        <div class="btn-group">
+            <button class="btn" onclick="exportPDF()"><i class="fa-solid fa-file-pdf"></i> Baixar PDF</button>
+            <button class="btn btn-secondary" onclick="exportImage()"><i class="fa-solid fa-file-image"></i> Baixar Imagem</button>
+        </div>
+    </div>
+
+    <!-- App Container -->
+    <div class="document-wrapper">
+        <div class="document-container" id="report">
+            
+            <div class="header-section">
+                <div class="sub-header">A paz de Deus esteja em nossos corações</div>
+                <div class="main-title">Músicos e Organistas CCB / GII</div>
+            </div>
+
+            <!-- Header Info -->
+            <div class="info-grid">
+                <div class="info-row">
+                    <div class="input-group" style="flex: 1.2;">
+                        <label for="eventDate">Dia:</label>
+                        <input type="date" id="eventDate">
+                    </div>
+                    <div class="input-group" style="flex: 2;">
+                        <label for="livro">Palavra:</label>
+                        <input type="text" id="livro" placeholder="Ex: Salmos">
+                    </div>
+                </div>
+                <div class="info-row">
+                    <div class="input-group">
+                        <label for="cp">Cp:</label>
+                        <input type="text" id="cp" placeholder="91">
+                    </div>
+                    <div class="input-group">
+                        <label for="vrs">Vrs:</label>
+                        <input type="text" id="vrs" placeholder="01">
+                    </div>
+                    <div class="input-group">
+                        <label for="ao">ao:</label>
+                        <input type="text" id="ao" placeholder="07">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Table -->
+            <div class="table-responsive">
+                <table id="orchestraTable">
+                    <thead>
+                        <tr>
+                            <th>Instrumento</th>
+                            <th class="text-center col-qtd" id="thQtd">Qtd</th>
+                            <th class="text-center col-pres" id="thPres">Pres.</th>
+                            <th class="text-center delete-col" style="width: 28px;"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody"></tbody>
+                    <tfoot>
+                        <tr class="row-total">
+                            <td>Total Músicos</td>
+                            <td class="text-center" id="totalMusicosQtd">0</td>
+                            <td class="text-center" id="totalMusicosPres">0</td>
+                            <td class="delete-col"></td>
+                        </tr>
+                        <tr class="row-total">
+                            <td>
+                                <input type="text" class="inst-input" value="Organistas" readonly style="font-weight:700; color:var(--primary-color);">
+                            </td>
+                            <td class="text-center">
+                                <input type="number" class="num-input" id="organistasQtd" value="20" min="0" oninput="calculateTotals()">
+                            </td>
+                            <td class="text-center">
+                                <input type="number" class="num-input" id="organistasPres" value="" min="0" placeholder="0" oninput="calculateTotals()">
+                            </td>
+                            <td class="delete-col"></td>
+                        </tr>
+                        <tr class="row-grand-total">
+                            <td>Total Geral</td>
+                            <td class="text-center" id="grandTotalQtd">0</td>
+                            <td class="text-center" id="grandTotalPres">0</td>
+                            <td class="delete-col"></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+            <!-- Signatures -->
+            <div class="footer-section">
+                <div class="signatures">
+                    <div class="signature-field">
+                        <label for="preenchidoPor">Preenchido por:</label>
+                        <input type="text" id="preenchidoPor" placeholder="Nome">
+                    </div>
+                    <div class="signature-field">
+                        <label for="cargo">Cargo:</label>
+                        <input type="text" id="cargo" placeholder="Ex: Instrutor">
+                    </div>
+                </div>
+
+                <div class="motivational-quote">
+                    GRATIDÃO a todos. Juntos somos mais fortes e com Deus, invencíveis.<br>
+                    Que Deus nos abençoe sempre.
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        const defaultInstruments = [
+            { name: "Acordeom", qtd: 3 },
+            { name: "Celo", qtd: 1 },
+            { name: "Clarinete", qtd: 3 },
+            { name: "Euphonium", qtd: 1 },
+            { name: "Flauta", qtd: 1 },
+            { name: "Flug", qtd: 1 },
+            { name: "Sax Alto", qtd: 5 },
+            { name: "Sax Soprano", qtd: 1 },
+            { name: "Sax Tenor", qtd: 1 },
+            { name: "Trombone", qtd: 4 },
+            { name: "Trompa", qtd: 1 },
+            { name: "Trompete", qtd: 5 },
+            { name: "Tuba", qtd: 4 },
+            { name: "Violino", qtd: 9 }
+        ];
+
+        function setDefaultDate() {
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const day = String(today.getDate()).padStart(2, '0');
+            
+            const dateInput = document.getElementById('eventDate');
+            if (!dateInput.value) {
+                dateInput.value = `${year}-${month}-${day}`;
+            }
+        }
+
+        function formatDateToBR(dateString) {
+            if (!dateString) return '';
+            const [year, month, day] = dateString.split('-');
+            return `${day}/${month}/${year}`;
+        }
+
+        function getExportDateString() {
+            const val = document.getElementById('eventDate').value;
+            if (!val) return 'data';
+            const [year, month, day] = val.split('-');
+            return `${day}-${month}-${year}`;
+        }
+
+        function sortTable() {
+            const tbody = document.getElementById('tableBody');
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+
+            rows.sort((a, b) => {
+                const nameA = a.querySelector('.inst-input').value.trim();
+                const nameB = b.querySelector('.inst-input').value.trim();
+
+                if (nameA === '' && nameB !== '') return 1;
+                if (nameA !== '' && nameB === '') return -1;
+
+                return nameA.localeCompare(nameB, 'pt-BR', { sensitivity: 'base' });
+            });
+
+            rows.forEach(row => tbody.appendChild(row));
+        }
+
+        function initTable() {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+
+            defaultInstruments.forEach(inst => {
+                createRow(inst.name, inst.qtd, '');
+            });
+
+            sortTable();
+            calculateTotals();
+        }
+
+        function createRow(name = '', qtd = 0, pres = '') {
+            const tbody = document.getElementById('tableBody');
+            const tr = document.createElement('tr');
+
+            tr.innerHTML = `
+                <td>
+                    <input type="text" class="inst-input" value="${name}" placeholder="Instrumento" onchange="sortTable()">
+                </td>
+                <td class="text-center col-qtd">
+                    <input type="number" class="num-input qtd-val" value="${qtd}" min="0" oninput="calculateTotals()">
+                </td>
+                <td class="text-center col-pres">
+                    <input type="number" class="num-input pres-val" value="${pres}" min="0" placeholder="0" oninput="calculateTotals()">
+                </td>
+                <td class="text-center delete-col">
+                    <button class="delete-btn" onclick="removeRow(this)"><i class="fa-solid fa-trash-can"></i></button>
+                </td>
+            `;
+
+            tbody.appendChild(tr);
+            sortTable();
+            calculateTotals();
+        }
+
+        function addInstrument() { createRow('', 0, ''); }
+
+        function removeRow(btn) {
+            btn.closest('tr').remove();
+            calculateTotals();
+        }
+
+        function calculateTotals() {
+            let totalMusicosQtd = 0;
+            let totalMusicosPres = 0;
+
+            document.querySelectorAll('.qtd-val').forEach(input => {
+                totalMusicosQtd += parseInt(input.value) || 0;
+            });
+
+            document.querySelectorAll('.pres-val').forEach(input => {
+                totalMusicosPres += parseInt(input.value) || 0;
+            });
+
+            document.getElementById('totalMusicosQtd').innerText = totalMusicosQtd;
+            document.getElementById('totalMusicosPres').innerText = totalMusicosPres;
+
+            const organistasQtd = parseInt(document.getElementById('organistasQtd').value) || 0;
+            const organistasPres = parseInt(document.getElementById('organistasPres').value) || 0;
+
+            document.getElementById('grandTotalQtd').innerText = totalMusicosQtd + organistasQtd;
+            document.getElementById('grandTotalPres').innerText = totalMusicosPres + organistasPres;
+        }
+
+        function saveData() {
+            const rows = document.querySelectorAll('#tableBody tr');
+            const instrumentsData = [];
+
+            rows.forEach(row => {
+                const name = row.querySelector('.inst-input').value;
+                const qtd = row.querySelector('.qtd-val').value;
+                const pres = row.querySelector('.pres-val').value;
+                instrumentsData.push({ name, qtd, pres });
+            });
+
+            const dataToSave = {
+                eventDate: document.getElementById('eventDate').value,
+                livro: document.getElementById('livro').value,
+                cp: document.getElementById('cp').value,
+                vrs: document.getElementById('vrs').value,
+                ao: document.getElementById('ao').value,
+                organistasQtd: document.getElementById('organistasQtd').value,
+                organistasPres: document.getElementById('organistasPres').value,
+                preenchidoPor: document.getElementById('preenchidoPor').value,
+                cargo: document.getElementById('cargo').value,
+                instruments: instrumentsData
+            };
+
+            localStorage.setItem('ccb_relatorio_dados', JSON.stringify(dataToSave));
+            alert('Dados salvos com sucesso!');
+        }
+
+        function loadData() {
+            const saved = localStorage.getItem('ccb_relatorio_dados');
+            if (!saved) {
+                initTable();
+                setDefaultDate();
+                return;
+            }
+
+            const data = JSON.parse(saved);
+
+            document.getElementById('eventDate').value = data.eventDate || '';
+            if(!data.eventDate) setDefaultDate();
+
+            document.getElementById('livro').value = data.livro || '';
+            document.getElementById('cp').value = data.cp || '';
+            document.getElementById('vrs').value = data.vrs || '';
+            document.getElementById('ao').value = data.ao || '';
+            document.getElementById('organistasQtd').value = data.organistasQtd ?? 20;
+            document.getElementById('organistasPres').value = data.organistasPres || '';
+            document.getElementById('preenchidoPor').value = data.preenchidoPor || '';
+            document.getElementById('cargo').value = data.cargo || '';
+
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+
+            if (data.instruments && data.instruments.length > 0) {
+                data.instruments.forEach(inst => {
+                    createRow(inst.name, inst.qtd, inst.pres);
+                });
+            } else {
+                initTable();
+            }
+
+            sortTable();
+            calculateTotals();
+        }
+
+        function resetForm() {
+            if(confirm('Deseja limpar os campos preenchidos?')) {
+                document.querySelectorAll('.pres-val').forEach(input => input.value = '');
+                document.getElementById('organistasPres').value = '';
+                calculateTotals();
+            }
+        }
+
+        function prepareExport() {
+            sortTable();
+            const report = document.getElementById('report');
+            document.querySelectorAll('.delete-col').forEach(el => el.style.display = 'none');
+            document.getElementById('thQtd').innerText = 'QUANTIDADE';
+            document.getElementById('thPres').innerText = 'PRESENTES';
+            
+            // Troca o input pelo texto formatado em DD/MM/AAAA para renderização
+            const dateInput = document.getElementById('eventDate');
+            const formattedDate = formatDateToBR(dateInput.value);
+            
+            let dateDisplay = document.getElementById('dateDisplayExport');
+            if (!dateDisplay) {
+                dateDisplay = document.createElement('span');
+                dateDisplay.id = 'dateDisplayExport';
+                dateDisplay.style.fontWeight = '600';
+                dateDisplay.style.fontSize = '0.85rem';
+                dateInput.parentNode.appendChild(dateDisplay);
+            }
+            dateDisplay.innerText = formattedDate;
+            dateInput.style.display = 'none';
+            dateDisplay.style.display = 'inline';
+
+            report.classList.add('exporting-mode');
+        }
+
+        function restoreExport() {
+            const report = document.getElementById('report');
+            document.querySelectorAll('.delete-col').forEach(el => el.style.display = '');
+            document.getElementById('thQtd').innerText = 'Qtd';
+            document.getElementById('thPres').innerText = 'Pres.';
+            
+            // Restaura o campo de data original
+            const dateInput = document.getElementById('eventDate');
+            const dateDisplay = document.getElementById('dateDisplayExport');
+            
+            if (dateDisplay) {
+                dateDisplay.style.display = 'none';
+            }
+            dateInput.style.display = 'block';
+
+            report.classList.remove('exporting-mode');
+        }
+
+        function exportPDF() {
+            prepareExport();
+            const element = document.getElementById('report');
+            const opt = {
+                margin:       8,
+                filename:     `Relatorio_CCB_${getExportDateString()}.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true, windowWidth: 600 },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            html2pdf().set(opt).from(element).save().then(() => {
+                restoreExport();
+            }).catch(err => {
+                restoreExport();
+                console.error(err);
+            });
+        }
+
+        function exportImage() {
+            prepareExport();
+            const element = document.getElementById('report');
+
+            html2canvas(element, { 
+                scale: 2, 
+                backgroundColor: '#ffffff',
+                windowWidth: 600
+            }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = `Relatorio_CCB_${getExportDateString()}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+                restoreExport();
+            }).catch(err => {
+                restoreExport();
+                console.error(err);
+            });
+        }
+
+        window.onload = () => {
+            loadData();
+        };
+
+        // Registro do Service Worker do PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(() => console.log('PWA registrado com sucesso!'))
+                    .catch(err => console.log('Erro ao registrar PWA:', err));
+            });
+        }
+    </script>
+</body>
+</html>
